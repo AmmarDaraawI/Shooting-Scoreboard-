@@ -184,6 +184,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
+            flex-wrap: wrap;
         }
 
         .legend-item {
@@ -256,8 +257,8 @@
             right: 0;
             z-index: 10;
             background-color: #162032;
-            min-width: 170px;
-            max-width: 170px;
+            min-width: 195px;
+            max-width: 195px;
             text-align: right;
             padding: 8px 10px;
             border-left: 2px solid #334155;
@@ -285,7 +286,21 @@
             vertical-align: middle;
         }
 
-        .shooter-meta { display: flex; align-items: center; gap: 6px; }
+        .shooter-meta { 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between;
+            gap: 6px; 
+            width: 100%;
+        }
+
+        .shooter-name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+            flex-grow: 1;
+        }
 
         .rank-number {
             font-size: 0.7rem;
@@ -307,6 +322,46 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        .shooter-name.disqualified {
+            text-decoration: line-through;
+            color: #ef4444;
+            opacity: 0.75;
+        }
+
+        /* حاوية العقوبات بعد الاسم على اليسار */
+        .penalty-badge {
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 4px;
+            letter-spacing: -2px;
+            flex-shrink: 0;
+            user-select: none;
+        }
+
+        .penalty-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            padding: 1px 5px;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: none;
+            flex-shrink: 0;
+        }
+
+        .penalty-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        body.admin-mode .penalty-btn {
+            display: inline-block;
         }
 
         .score-cell {
@@ -337,7 +392,6 @@
             border-color: #f87171;
         }
 
-        /* قفل النقر نهائياً للمشاهد */
         body.viewer-mode .score-cell {
             pointer-events: none !important;
             cursor: default !important;
@@ -427,7 +481,7 @@
 
         @media print {
             body { background: white !important; color: black !important; padding: 0 !important; }
-            .controls-section, .legend-bar, .modal-overlay, .live-badge { display: none !important; }
+            .controls-section, .legend-bar, .modal-overlay, .live-badge, .penalty-btn { display: none !important; }
             th.sticky-col, td.sticky-col, th.sticky-total, td.sticky-total { background: transparent !important; position: static !important; color: black !important; }
             .score-cell.bono { background: #10b981 !important; -webkit-print-color-adjust: exact; }
             .score-cell.zero { background: #ef4444 !important; -webkit-print-color-adjust: exact; }
@@ -480,6 +534,15 @@
             <div class="legend-item">
                 <span class="badge-box badge-pending"></span>
                 <span>بانتظار الرمي</span>
+            </div>
+            <div class="legend-item" style="border-right: 1px solid var(--border-color); padding-right: 12px; margin-right: 4px;">
+                <span>⚠️ إنذار 1</span>
+            </div>
+            <div class="legend-item">
+                <span>⚠️⚠️ إنذار 2</span>
+            </div>
+            <div class="legend-item">
+                <span>🔺 استبعاد</span>
             </div>
         </div>
 
@@ -564,7 +627,6 @@
         const TOTAL_SHOOTERS = 25;
         const TARGETS_PER_ROUND = 25;
 
-        // إعدادات السحابة الحية مدمجة رسمياً
         const firebaseConfig = {
             apiKey: "AIzaSyCGQjbdPK8vmb-u0MUKH7mjj6lf29rNX0s",
             authDomain: "shooting-scorebord.firebaseapp.com",
@@ -584,6 +646,7 @@
                 list.push({
                     id: i,
                     name: `رامي ${i}`,
+                    penalty: 0, // 0: لا يوجد, 1: ⚠️, 2: ⚠️⚠️, 3: 🔺
                     scores: Array(TARGETS_PER_ROUND).fill(-1)
                 });
             }
@@ -627,7 +690,7 @@
             for (let i = 0; i < TOTAL_SHOOTERS; i++) {
                 const shooter = (tournamentData.shooters && tournamentData.shooters[i]) 
                                 ? tournamentData.shooters[i] 
-                                : { id: i + 1, name: `رامي ${i + 1}`, scores: Array(TARGETS_PER_ROUND).fill(-1) };
+                                : { id: i + 1, name: `رامي ${i + 1}`, penalty: 0, scores: Array(TARGETS_PER_ROUND).fill(-1) };
 
                 if (!shooter.scores) shooter.scores = Array(TARGETS_PER_ROUND).fill(-1);
 
@@ -635,12 +698,29 @@
                 const shotsFired = shooter.scores.filter(s => s === 1 || s === 0).length;
                 const nameDisplay = (shooter.name && shooter.name.trim() !== "") ? shooter.name : `رامي ${i + 1}`;
 
+                // تحديد نص ورمز العقوبة
+                let penaltySymbol = '';
+                let isDisqualified = false;
+                const penaltyVal = shooter.penalty || 0;
+                if (penaltyVal === 1) {
+                    penaltySymbol = '⚠️';
+                } else if (penaltyVal === 2) {
+                    penaltySymbol = '⚠️⚠️';
+                } else if (penaltyVal === 3) {
+                    penaltySymbol = '🔺';
+                    isDisqualified = true;
+                }
+
                 const tr = document.createElement('tr');
                 let rowHtml = `
                     <td class="sticky-col">
                         <div class="shooter-meta">
-                            <span class="rank-number">${i + 1}</span>
-                            <span class="shooter-name">${nameDisplay}</span>
+                            <div class="shooter-name-wrapper">
+                                <span class="rank-number">${i + 1}</span>
+                                <span class="shooter-name ${isDisqualified ? 'disqualified' : ''}" title="${nameDisplay}">${nameDisplay}</span>
+                                ${penaltySymbol ? `<span class="penalty-badge" title="عقوبة">${penaltySymbol}</span>` : ''}
+                            </div>
+                            <button class="penalty-btn" onclick="cyclePenalty(${i})" title="تغيير العقوبة (إنذار / فصل)">⚖️</button>
                         </div>
                     </td>
                 `;
@@ -679,11 +759,27 @@
             }
         }
 
+        // التبديل بين حالات العقوبة بالتتابع
+        function cyclePenalty(shooterIndex) {
+            if (!isAdmin) return;
+
+            if (!tournamentData.shooters[shooterIndex]) {
+                tournamentData.shooters[shooterIndex] = { id: shooterIndex + 1, name: `رامي ${shooterIndex + 1}`, penalty: 0, scores: Array(TARGETS_PER_ROUND).fill(-1) };
+            }
+
+            let current = tournamentData.shooters[shooterIndex].penalty || 0;
+            current = (current + 1) % 4; // يتنقل: 0 -> 1 -> 2 -> 3 -> 0
+            tournamentData.shooters[shooterIndex].penalty = current;
+
+            renderScoreboard();
+            saveData();
+        }
+
         function handleCellClick(shooterIndex, targetIndex) {
             if (!isAdmin) return;
 
             if (!tournamentData.shooters[shooterIndex]) {
-                tournamentData.shooters[shooterIndex] = { id: shooterIndex + 1, name: `رامي ${shooterIndex + 1}`, scores: Array(TARGETS_PER_ROUND).fill(-1) };
+                tournamentData.shooters[shooterIndex] = { id: shooterIndex + 1, name: `رامي ${shooterIndex + 1}`, penalty: 0, scores: Array(TARGETS_PER_ROUND).fill(-1) };
             }
 
             const current = tournamentData.shooters[shooterIndex].scores[targetIndex];
@@ -709,6 +805,7 @@
                 document.body.classList.add('viewer-mode');
                 document.getElementById('auth-btn').innerHTML = '<span>🔒 لوحة الحكم</span>';
                 document.getElementById('admin-actions-bar').style.display = 'none';
+                renderScoreboard();
             } else {
                 openPinModal();
             }
@@ -728,6 +825,7 @@
                 document.getElementById('auth-btn').innerHTML = '<span>🔓 خروج الإدارة</span>';
                 document.getElementById('admin-actions-bar').style.display = 'flex';
                 closeModal('pin-modal');
+                renderScoreboard();
             } else {
                 alert('كلمة المرور غير صحيحة!');
             }
@@ -750,7 +848,7 @@
             for (let i = 1; i <= TOTAL_SHOOTERS; i++) {
                 const val = document.getElementById(`name-input-${i}`).value.trim();
                 if (!tournamentData.shooters[i - 1]) {
-                    tournamentData.shooters[i - 1] = { id: i, scores: Array(TARGETS_PER_ROUND).fill(-1) };
+                    tournamentData.shooters[i - 1] = { id: i, penalty: 0, scores: Array(TARGETS_PER_ROUND).fill(-1) };
                 }
                 tournamentData.shooters[i - 1].name = val !== "" ? val : `رامي ${i}`;
             }
@@ -802,6 +900,7 @@
                             tournamentData.shooters[i] = {
                                 id: i + 1,
                                 name: incoming.name || `رامي ${i + 1}`,
+                                penalty: incoming.penalty || 0,
                                 scores: safeScores
                             };
                         }
@@ -836,10 +935,11 @@
             if (dbRef && isAdmin) {
                 const safePayload = { shooters: {} };
                 for (let i = 0; i < TOTAL_SHOOTERS; i++) {
-                    const s = tournamentData.shooters[i] || { id: i + 1, name: `رامي ${i + 1}`, scores: Array(TARGETS_PER_ROUND).fill(-1) };
+                    const s = tournamentData.shooters[i] || { id: i + 1, name: `رامي ${i + 1}`, penalty: 0, scores: Array(TARGETS_PER_ROUND).fill(-1) };
                     safePayload.shooters[i] = {
                         id: s.id,
                         name: s.name || `رامي ${s.id}`,
+                        penalty: s.penalty || 0,
                         scores: s.scores.map(sc => (sc === 1 || sc === 0) ? sc : -1)
                     };
                 }
