@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
-    <!-- مكتبة توليد QR Code ومكتبة الطباعة والتصدير -->
+    <!-- مكتبة توليد QR Code -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- مكتبات Firebase السحابية الرسمية -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -46,7 +46,6 @@
             overflow-x: hidden;
         }
 
-        /* رأس الصفحة */
         header {
             display: flex;
             flex-wrap: wrap;
@@ -118,7 +117,6 @@
             margin-top: 2px;
         }
 
-        /* أدوات التحكم العلوية */
         .controls-section {
             display: flex;
             align-items: center;
@@ -193,7 +191,6 @@
             box-shadow: 0 0 8px #10b981;
         }
 
-        /* مفتاح الألوان والتوضيح */
         .legend-bar {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -224,7 +221,12 @@
             width: 18px;
             height: 18px;
             border-radius: 4px;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 0.7rem;
+            color: white;
         }
 
         .badge-bono {
@@ -242,7 +244,6 @@
             border: 1px dashed #334155;
         }
 
-        /* الحاوية الرئيسية للجدول */
         .table-wrapper {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -276,7 +277,6 @@
             font-size: 0.8rem;
         }
 
-        /* ترويسة الجدول */
         thead th {
             background-color: #1e293b;
             color: var(--text-dim);
@@ -293,7 +293,6 @@
             font-size: 0.72rem;
         }
 
-        /* تثبيت عمود الرامي لسهولة التمرير على الموبايل */
         th.sticky-col, td.sticky-col {
             position: sticky;
             right: 0;
@@ -312,7 +311,6 @@
             z-index: 12;
         }
 
-        /* تثبيت عمود المجموع */
         th.sticky-total, td.sticky-total {
             position: sticky;
             left: 0;
@@ -381,7 +379,6 @@
             font-size: 0.85rem;
         }
 
-        /* خلايا السكور التفاعلية */
         .score-cell {
             width: 28px;
             height: 28px;
@@ -390,8 +387,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
-            font-size: 0.72rem;
+            font-weight: 900;
+            font-size: 0.85rem;
             cursor: pointer;
             user-select: none;
             transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -414,12 +411,12 @@
             border-color: #f87171;
         }
 
-        /* في نمط المشاهد لا يوجد مؤشر كليك */
+        /* قفل التفاعل تماماً في وضع المشاهدة */
         body.viewer-mode .score-cell {
-            cursor: default;
+            cursor: default !important;
+            pointer-events: none !important;
         }
 
-        /* تنسيق عمود المجموع */
         .total-score {
             font-weight: 900;
             font-size: 1rem;
@@ -432,7 +429,6 @@
             font-weight: normal;
         }
 
-        /* النوافذ المنبثقة (Modals) */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -529,7 +525,6 @@
             border-radius: 3px;
         }
 
-        /* منطقة QR كود */
         #qrcode-box {
             display: flex;
             justify-content: center;
@@ -542,7 +537,6 @@
             height: 220px;
         }
 
-        /* إعدادات الطباعة الرسمية (PDF) */
         @media print {
             body {
                 background: white !important;
@@ -596,7 +590,6 @@
 </head>
 <body class="viewer-mode">
 
-    <!-- ترويسة اللوحة -->
     <header>
         <div class="brand-section">
             <div class="target-icon">
@@ -611,35 +604,31 @@
         <div class="controls-section">
             <div class="status-pill" id="cloud-pill">
                 <span class="cloud-indicator" id="cloud-status-dot"></span>
-                <span id="cloud-status-text">وضع الذاكرة المحلية</span>
+                <span id="cloud-status-text">جاري الاتصال...</span>
             </div>
 
-            <!-- زر مشاركة الرابط والكيو آر -->
             <button class="btn" onclick="openShareModal()">
                 <span>📱 شارك الرابط (QR)</span>
             </button>
 
-            <!-- زر تصدير التقرير PDF -->
             <button class="btn btn-pdf" onclick="generateTournamentPDF()">
                 <span>📄 تقرير البطولة (PDF)</span>
             </button>
 
-            <!-- زر لوحة الحكم -->
             <button class="btn btn-gold" id="auth-btn" onclick="toggleAdminPrompt()">
                 <span>🔒 لوحة الحكم</span>
             </button>
         </div>
     </header>
 
-    <!-- شريط مفتاح الألوان وأدوات الحكم -->
     <div class="legend-bar">
         <div class="legend-items">
             <div class="legend-item">
-                <span class="badge-box badge-bono"></span>
+                <span class="badge-box badge-bono">✓</span>
                 <span><strong>بونو (+1)</strong>: إصابة</span>
             </div>
             <div class="legend-item">
-                <span class="badge-box badge-zero"></span>
+                <span class="badge-box badge-zero">✕</span>
                 <span><strong>زيرو (0)</strong>: خطأ</span>
             </div>
             <div class="legend-item">
@@ -648,7 +637,6 @@
             </div>
         </div>
 
-        <!-- أزرار تظهر فقط في وضع الإدارة -->
         <div id="admin-actions-bar" style="display:none; gap:6px; flex-wrap:wrap;">
             <button class="btn" style="background:#0284c7; border-color:#0369a1; color:white;" onclick="openNamesModal()">
                 <span>✏️ تعديل الأسماء (25)</span>
@@ -662,14 +650,12 @@
         </div>
     </div>
 
-    <!-- جدول السكور بورد الرئيسي -->
     <div class="table-wrapper">
         <div class="table-scroll">
             <table id="scoreboard-table">
                 <thead>
                     <tr>
                         <th class="sticky-col">اسم الرامي (#)</th>
-                        <!-- 25 طبق -->
                         <script>
                             for(let i = 1; i <= 25; i++) {
                                 document.write(`<th class="th-target">${i}</th>`);
@@ -679,13 +665,11 @@
                     </tr>
                 </thead>
                 <tbody id="scores-tbody">
-                    <!-- يتم بناؤه بالجافاسكريبت -->
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- نافذة طلب رمز الدخول للحكم -->
     <div class="modal-overlay" id="pin-modal">
         <div class="modal-card">
             <div class="modal-header">
@@ -703,7 +687,6 @@
         </div>
     </div>
 
-    <!-- نافذة تعديل أسماء الرماة الـ 25 -->
     <div class="modal-overlay" id="names-modal">
         <div class="modal-card" style="max-width: 620px;">
             <div class="modal-header">
@@ -711,10 +694,9 @@
                 <button class="modal-close" onclick="closeModal('names-modal')">✕</button>
             </div>
             <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:10px;">
-                اكتب أسماء الرماة حسب ترتيب دخول المنصة. الحقول غير المملوءة ستظهر باسم افتراضي.
+                اكتب أسماء الرماة حسب ترتيب الجولة، ثم اضغط حفظ الأسماء.
             </p>
             <div class="names-grid" id="names-inputs-container">
-                <!-- حقول الأسماء 1 إلى 25 -->
             </div>
             <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
                 <button class="btn" onclick="closeModal('names-modal')">إلغاء</button>
@@ -723,7 +705,6 @@
         </div>
     </div>
 
-    <!-- نافذة المشاركة و QR Code -->
     <div class="modal-overlay" id="share-modal">
         <div class="modal-card" style="text-align:center;">
             <div class="modal-header">
@@ -743,7 +724,6 @@
         </div>
     </div>
 
-    <!-- نافذة إعداد السحابة المباشرة (Firebase Config) -->
     <div class="modal-overlay" id="cloud-modal">
         <div class="modal-card" style="max-width:560px;">
             <div class="modal-header">
@@ -751,14 +731,10 @@
                 <button class="modal-close" onclick="closeModal('cloud-modal')">✕</button>
             </div>
             <p style="font-size:0.78rem; color:var(--text-dim); margin-bottom:12px;">
-                الصق كائن الإعدادات <code>firebaseConfig</code> الذي نسخته من منصة Firebase Database لتفعيل التحديث الفوري بين كل الهواتف:
+                كود الإعدادات الخاص بقاعدة بياناتك:
             </p>
             <div class="input-group">
-                <textarea id="firebase-config-input" class="input-text" rows="8" style="direction:ltr; font-family:monospace; font-size:0.75rem;" placeholder='{
-  apiKey: "AIzaSy...",
-  databaseURL: "https://your-project-rtdb.firebaseio.com",
-  projectId: "your-project"
-}'></textarea>
+                <textarea id="firebase-config-input" class="input-text" rows="8" style="direction:ltr; font-family:monospace; font-size:0.75rem;"></textarea>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <button class="btn" style="background:#dc2626; color:white;" onclick="disconnectCloud()">إلغاء الربط السحابي</button>
@@ -771,7 +747,6 @@
     </div>
 
     <script>
-        // المتغيرات الثابتة
         const ADMIN_PIN = "102030AAA";
         const TOTAL_SHOOTERS = 25;
         const TARGETS_PER_ROUND = 25;
@@ -780,20 +755,22 @@
         let dbRef = null;
         let firebaseInitialized = false;
 
-        // هيكل البيانات الأساسي
-        let tournamentData = {
-            shooters: Array.from({ length: TOTAL_SHOOTERS }, (_, i) => ({
-                id: i + 1,
-                name: "",
-                scores: Array(TARGETS_PER_ROUND).fill(null) // null = انتظار, 1 = بونو, 0 = زيرو
-            }))
-        };
+        function createInitialData() {
+            return {
+                shooters: Array.from({ length: TOTAL_SHOOTERS }, (_, i) => ({
+                    id: i + 1,
+                    name: "",
+                    scores: Array(TARGETS_PER_ROUND).fill(-1)
+                }))
+            };
+        }
 
-        // التهيئة عند تشغيل الصفحة
+        let tournamentData = createInitialData();
+
         window.addEventListener('DOMContentLoaded', () => {
             initInputsInModal();
-            loadLocalOrCloud();
             renderScoreboard();
+            loadLocalOrCloud();
             updateLiveClock();
             setInterval(updateLiveClock, 30000);
         });
@@ -805,7 +782,6 @@
             document.getElementById('live-time-stamp').textContent = `لوحة النتائج الرسمية المحدثة | ${dateStr} - ${timeStr}`;
         }
 
-        // بناء حقول الأسماء في المودال
         function initInputsInModal() {
             const container = document.getElementById('names-inputs-container');
             container.innerHTML = '';
@@ -819,20 +795,23 @@
             }
         }
 
-        // رسم وتحديث الجدول
         function renderScoreboard() {
             const tbody = document.getElementById('scores-tbody');
             tbody.innerHTML = '';
 
+            if (!tournamentData || !tournamentData.shooters || tournamentData.shooters.length === 0) {
+                tournamentData = createInitialData();
+            }
+
             tournamentData.shooters.forEach((shooter, idx) => {
                 const tr = document.createElement('tr');
 
-                // حساب المجموع والرميات المنجزة
-                const bonoCount = shooter.scores.filter(s => s === 1).length;
-                const shotsFired = shooter.scores.filter(s => s !== null).length;
+                if (!shooter.scores) shooter.scores = Array(TARGETS_PER_ROUND).fill(-1);
 
-                // عمود الرامي
-                const nameDisplay = shooter.name.trim() !== "" ? shooter.name : `رامي ${shooter.id}`;
+                const bonoCount = shooter.scores.filter(s => s === 1).length;
+                const shotsFired = shooter.scores.filter(s => s === 1 || s === 0).length;
+
+                const nameDisplay = (shooter.name && shooter.name.trim() !== "") ? shooter.name : `رامي ${shooter.id}`;
                 
                 let rowHtml = `
                     <td class="sticky-col">
@@ -843,7 +822,6 @@
                     </td>
                 `;
 
-                // خلايا الأهداف الـ 25
                 for (let t = 0; t < TARGETS_PER_ROUND; t++) {
                     const score = shooter.scores[t];
                     let stateClass = '';
@@ -851,10 +829,10 @@
 
                     if (score === 1) {
                         stateClass = 'bono';
-                        charText = 'B';
+                        charText = '✓'; // إشارة صح بيضاء
                     } else if (score === 0) {
                         stateClass = 'zero';
-                        charText = 'Z';
+                        charText = '✕'; // إشارة إكس بيضاء
                     }
 
                     rowHtml += `
@@ -868,7 +846,6 @@
                     `;
                 }
 
-                // عمود المجموع
                 rowHtml += `
                     <td class="sticky-total">
                         <div class="total-score">${bonoCount}</div>
@@ -881,24 +858,19 @@
             });
         }
 
-        // التفاعل مع كليك الأطباق (خاص بالحكم)
         function handleCellClick(shooterIndex, targetIndex) {
-            if (!isAdmin) {
-                // إذا كان مشاهداً، نفتح له نافذة الدخول
-                openPinModal();
-                return;
-            }
+            // في حال لم يكن حكماً، لا يحدث أي شيء نهائياً
+            if (!isAdmin) return;
 
             const current = tournamentData.shooters[shooterIndex].scores[targetIndex];
-            let next = null;
+            let next = -1;
 
-            // تسلسل التبديل: فاضي -> بونو (1) -> زيرو (0) -> فاضي (null)
-            if (current === null) {
-                next = 1;
+            if (current === -1 || current === undefined || current === null) {
+                next = 1; // بونو
             } else if (current === 1) {
-                next = 0;
+                next = 0; // زيرو
             } else {
-                next = null;
+                next = -1; // فارغ
             }
 
             tournamentData.shooters[shooterIndex].scores[targetIndex] = next;
@@ -906,10 +878,8 @@
             renderScoreboard();
         }
 
-        // إدارة كلمات السر وصلاحيات الحكم
         function toggleAdminPrompt() {
             if (isAdmin) {
-                // تسجيل خروج
                 isAdmin = false;
                 document.body.classList.add('viewer-mode');
                 document.getElementById('auth-btn').innerHTML = '<span>🔒 لوحة الحكم</span>';
@@ -939,11 +909,10 @@
             }
         }
 
-        // تعديل وحفظ الأسماء الـ 25
         function openNamesModal() {
             for (let i = 1; i <= TOTAL_SHOOTERS; i++) {
-                const currentName = tournamentData.shooters[i - 1].name;
-                document.getElementById(`name-input-${i}`).value = currentName || "";
+                const shooter = tournamentData.shooters[i - 1];
+                document.getElementById(`name-input-${i}`).value = (shooter && shooter.name) ? shooter.name : "";
             }
             document.getElementById('names-modal').classList.add('active');
         }
@@ -958,30 +927,20 @@
             closeModal('names-modal');
         }
 
-        // تصفير الجولة بالكامل (مسح الدرجات والأسماء معاً)
         function confirmResetAll() {
             const ok = confirm("تحذير: هل أنت متأكد من تصفير الجولة بالكامل؟\nسيتم مسح جميع النقاط وإفراغ جميع أسماء الرماة.");
             if (ok) {
-                tournamentData = {
-                    shooters: Array.from({ length: TOTAL_SHOOTERS }, (_, i) => ({
-                        id: i + 1,
-                        name: "",
-                        scores: Array(TARGETS_PER_ROUND).fill(null)
-                    }))
-                };
+                tournamentData = createInitialData();
                 saveData();
                 renderScoreboard();
                 alert("تم تصفير الجولة وتفريغ الأسماء بنجاح.");
             }
         }
 
-        // توليد تقرير PDF رسمي للبطولة
         function generateTournamentPDF() {
-            // فتح نافذة الطباعة الرسمية مع ترتيب المراكز تلقائياً
             window.print();
         }
 
-        // مشاركة الرابط والكيو آر
         function openShareModal() {
             const currentUrl = window.location.href;
             document.getElementById('share-url-input').value = currentUrl;
@@ -1013,7 +972,6 @@
             document.getElementById(id).classList.remove('active');
         }
 
-        // ------------------ المزامنة وقاعدة البيانات ------------------
         function loadLocalOrCloud() {
             const savedConfig = localStorage.getItem('shooting_fb_config');
             if (savedConfig) {
@@ -1025,7 +983,6 @@
                 }
             }
 
-            // إذا لم تكن هناك سحابة، نقرأ من الذاكرة المحلية
             const localData = localStorage.getItem('shooting_tournament_data');
             if (localData) {
                 try {
@@ -1046,12 +1003,10 @@
         function saveCloudConfig() {
             const raw = document.getElementById('firebase-config-input').value.trim();
             try {
-                // محاولة استخراج كائن JSON أو كائن JS
                 let parsed;
                 if (raw.startsWith('{')) {
                     parsed = JSON.parse(raw);
                 } else {
-                    // استخراج الكائن إذا نسخه المستخدم ككود JS
                     const jsonStr = raw.substring(raw.indexOf('{'), raw.lastIndexOf('}') + 1)
                                       .replace(/([{,]\s*)([a-zA-Z0-9_]+)\s*:/g, '$1"$2":')
                                       .replace(/'/g, '"');
@@ -1061,9 +1016,9 @@
                 localStorage.setItem('shooting_fb_config', JSON.stringify(parsed));
                 initFirebase(parsed);
                 closeModal('cloud-modal');
-                alert('تم ربط السحابة بنجاح! الآن ستتحدث النتائج مباشرة عند جميع الرماة.');
+                alert('تم ربط السحابة بنجاح!');
             } catch (err) {
-                alert('صيغة الإعدادات غير صحيحة، يرجى نسخ الـ firebaseConfig بشكل صحيح من منصة Firebase.');
+                alert('صيغة الإعدادات غير صحيحة.');
             }
         }
 
@@ -1079,12 +1034,27 @@
             const db = firebase.database();
             dbRef = db.ref('live_tournament_round');
 
-            // الاستماع للتحديثات الحية الفورية
             dbRef.on('value', (snapshot) => {
                 const val = snapshot.val();
                 if (val && val.shooters) {
-                    tournamentData = val;
+                    const loadedShooters = [];
+                    for (let i = 0; i < TOTAL_SHOOTERS; i++) {
+                        const s = val.shooters[i] || {};
+                        const scores = [];
+                        for (let t = 0; t < TARGETS_PER_ROUND; t++) {
+                            const sc = (s.scores && s.scores[t] !== undefined) ? s.scores[t] : -1;
+                            scores.push(sc);
+                        }
+                        loadedShooters.push({
+                            id: i + 1,
+                            name: s.name || "",
+                            scores: scores
+                        });
+                    }
+                    tournamentData.shooters = loadedShooters;
                     renderScoreboard();
+                } else {
+                    saveData();
                 }
             });
 
@@ -1100,17 +1070,22 @@
                 txt.textContent = 'متصل بالسحابة (مباشر)';
             } else {
                 dot.classList.remove('connected');
-                txt.textContent = 'ذاكرة محلية (غير متصل بالسحابة)';
+                txt.textContent = 'ذاكرة محلية (غير متصل)';
             }
         }
 
         function saveData() {
-            // حفظ محلي دائماً كنسخة احتياطية
             localStorage.setItem('shooting_tournament_data', JSON.stringify(tournamentData));
 
-            // حفظ سحابي إذا كانت السحابة مفعلة
             if (firebaseInitialized && dbRef && isAdmin) {
-                dbRef.set(tournamentData);
+                const safePayload = {
+                    shooters: tournamentData.shooters.map(s => ({
+                        id: s.id,
+                        name: s.name || "",
+                        scores: s.scores.map(sc => (sc === 1 || sc === 0) ? sc : -1)
+                    }))
+                };
+                dbRef.set(safePayload);
             }
         }
     </script>
